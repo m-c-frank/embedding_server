@@ -10,6 +10,8 @@ import sqlite3
 
 
 PATH_INPUT = "/home/mcfrank/brain/data/test"
+HOST = os.environ.get("HOST", "localhost")
+PORT = os.environ.get("PORT", 5020)
 
 app = fastapi.FastAPI()
 
@@ -83,7 +85,7 @@ def files_to_nodes(directory):
             timestamp = str(int(time.time()*1000))
             origin = path + "/" + filename
             text = open(origin).read()
-            print(id, name, timestamp, origin, text)
+            # print(id, name, timestamp, origin, text)
             node = Node(
                 id=id,
                 name=name,
@@ -93,13 +95,13 @@ def files_to_nodes(directory):
             )
             node_already_in_db = root_node_exists(origin)
 
-            print("-"*16)
+            # print("-"*16)
             if not node_already_in_db:
-                print(f"inserting node {node}")
+                # print(f"inserting node {node}")
                 insert_root_node(node)
-            else:
-                print(f"node {node} already exists thus not inserting")
-            print("-"*16)
+            # else:
+            #     print(f"node {node} already exists thus not inserting")
+            # print("-"*16)
             nodes.append(node)
 
     return nodes
@@ -144,7 +146,4 @@ if __name__ == "__main__":
     import uvicorn
     create_root_node_table()
     nodes = files_to_nodes("/home/mcfrank/brain/data/test")
-    print("-" * 16 + "gathered these nodes")
-    print(len(nodes))
-    print("-" * 16)
-    uvicorn.run(app, host="localhost", port=5020)
+    uvicorn.run(app, host=HOST, port=PORT)
