@@ -2,11 +2,8 @@ import fastapi
 import time
 import uuid
 from typing import List
-import json
 import os
-import random
 import networkx as nx
-from networkx.readwrite import json_graph
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import sqlite3
