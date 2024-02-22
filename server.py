@@ -3,7 +3,6 @@ import time
 import uuid
 from typing import List
 import os
-import networkx as nx
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import sqlite3
@@ -14,8 +13,6 @@ HOST = os.environ.get("HOST", "localhost")
 PORT = os.environ.get("PORT", 5020)
 
 app = fastapi.FastAPI()
-
-graph = nx.Graph()
 
 
 class Link(BaseModel):
