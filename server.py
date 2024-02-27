@@ -12,7 +12,6 @@ from transformers import AutoTokenizer, AutoModel
 import torch.nn.functional as F
 import torch
 
-from typing import List
 
 PATH_INPUT = "/home/mcfrank/notes"
 HOST = os.environ.get("HOST", "localhost")
@@ -196,11 +195,15 @@ def embed_text(text: str):
 
 def embed_chunks(chunks: List[str]):
     def mean_pooling(model_output, attention_mask):
-        # First element of model_output contains all token embeddings
         token_embeddings = model_output[0]
         input_mask_expanded = attention_mask.unsqueeze(
             -1).expand(token_embeddings.size()).float()
-        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+        return torch.sum(
+            token_embeddings * input_mask_expanded, 1
+        ) / torch.clamp(
+            input_mask_expanded.sum(1),
+            min=1e-9
+        )
 
     # Sentences we want sentence embeddings for
     sentences = chunks
@@ -269,6 +272,7 @@ def get_all_nodes() -> List[Node]:
         for row in c.fetchall()
     ]
 
+
 def get_all_embeddings() -> List[Embedding]:
     conn = sqlite3.connect('data/sqlite.db')
 
@@ -314,6 +318,14 @@ def get_node_embedding(node_id) -> Embedding:
     )
 
 
+class EmbeddingRequest(BaseModel):
+    node_id: str
+
+
+class TextEmbeddingRequest(BaseModel):
+    text: str
+
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
@@ -328,22 +340,29 @@ def get_nodes() -> List[Node]:
     return snapshot_nodes
 
 
-class EmbeddingRequest(BaseModel):
-    node_id: str
-
 @app.post("/node/embedding")
 def get_embedding(embedding_request: EmbeddingRequest) -> Embedding:
     node_id = embedding_request.node_id
     embedding = get_node_embedding(node_id)
     return embedding
 
+
 @app.get("/embeddings")
 def get_embeddings() -> List[Embedding]:
     return get_all_embeddings()
 
+
+@app.post("/embed/text")
+def embed_text_endpoint(
+        text_embedding_request: TextEmbeddingRequest
+) -> List[float]:
+    return embed_text(text_embedding_request.text)
+
+
 def start_embedding_process():
     node_embeddings = nodes_to_embeddings(nodes)
     print(f"embedded {len(node_embeddings)} nodes")
+
 
 if __name__ == "__main__":
     import uvicorn
